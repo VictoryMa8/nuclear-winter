@@ -1,5 +1,5 @@
-// starting weapons stat total = 30 (besides fists)
-// dmg = damage, dex = dexterity, rng = range
+// STARTING WEAPONS
+// damage, dexterity, and range (must total to 30)
 const weapons = [
   { name: "Fists", dmg: 5, dex: 5, rng: 5 }, // 0
   { name: "Hunting Rifle", dmg: 15, dex: 5, rng: 10 }, // 1
@@ -8,17 +8,21 @@ const weapons = [
   { name: "Revolver", dmg: 10, dex: 10, rng: 10 }
 ]
 
-// all items
+// ITEMS
+// name, description, and combat (whether the item can be used in combat or not)
 const items = [
-  { name: "Medkit", desc: "Heals the player greatly when injured."},
-  { name: "Key", desc: "Unlocks a door... to somewhere..."},
-  { name: "Flashbang", desc: "Allows the player to incapacitate the enemy and quickly escape combat."}
+  { name: "Medkit", desc: "Heals the player greatly when injured.", combat: true},
+  { name: "Key", desc: "Unlocks a door... to somewhere.", combat: false},
+  { name: "Flashbang", desc: "Allows the player to incapacitate the enemy and quickly escape combat.", combat: true},
+  { name: "Lighter", desc: "Allows the player to see in dark places or burn cobwebs.", combat: false}
 ]
 
-// atk = attack, def = defense, spd = speed
-// stat formula for balance: stats for a class should add up to 100 'points' (besides the 'none' class)
-// health is worth 1/4 a point, atk/def/spd is worth 1 point
-// for instance, for the survivalist has 200 hp (50 points), and atk/def/spd total of 50 (50 points), 100 points total
+/* 
+CHARACTER CLASSES
+attributes for a class should add up to 100 'points'
+attack, defense, and speed are worth 1 point each
+health is worth 0.25 points
+*/
 const classes = [
   { name: "None", maxHealth: 100, atk: 10, def: 10, spd: 10, weapon: weapons[0],
     desc: ""
@@ -37,14 +41,14 @@ const classes = [
    }
 ]
 
-// player object
+// PLAYER
 const player = {
-  // xp, level, & gold
+  // xp, level, and gold
   xp: 0,
   level: 0,
   xpToNextLevel: 10,
   gold: 0,
-  // stats
+  // statistical attributes
   health: 100,
   maxHealth: 100,
   atk: 10,
@@ -57,6 +61,7 @@ const player = {
   classDesc: ""
 }
 
+// ENEMIES
 const enemies = [
   {
     name: "Hostile Raider",
@@ -96,7 +101,7 @@ const enemies = [
   }
 ];
 
-// set player class
+// SET USER CLASS
 function setPlayerClass(classIndex) {
   const selectedClass = classes[classIndex];
   player.health = selectedClass.maxHealth;
@@ -110,15 +115,14 @@ function setPlayerClass(classIndex) {
   updatePlayerStatsDisplay();
 }
 
-// been to certain a screen already?
+// HAS USER BEEN TO A CERTAIN SCREEN ALREADY?
 let beenTo11 = false;
 let beenTo12 = false;
 let beenTo15 = false;
-
-// screen 16 conditional message
+// SPECIAL CONDITIONAL FOR SCREEN 16
 let message16 = "After walking that long road you come across your town.";
 
-// game screens
+// GAME SCREENS
 const screens = [
   { 
     name: "0. Start game",
@@ -249,69 +253,19 @@ const screens = [
   },
 ];
 
-// combat related functionality
+// COMBAT FUNCTIONALITY
 let inCombat = false;
 
-function calculateDamage(attacker, defender) {
-  let weaponDamage = attacker.currentWeapon.dmg + (attacker.currentWeapon.dex / 2) + (attacker.currentWeapon.rng / 3);
-  let baseDamage = (attacker.atk - defender.def) * 2 + weaponDamage;
-  if (attacker.spd > defender.spd) {
-    baseDamage += (attacker.spd / 3)
-  }
-  let randomDamage = (Math.floor(Math.random() * 10) + 1) + baseDamage;
-  return Math.floor(Math.max(20, randomDamage));
-}
-
-function playerAttack(enemy) {
-  // calculate damage
-  let damage = calculateDamage(player, enemy);
-  enemy.health = Math.max(0, enemy.health - damage);
-
-  // update text
+// PUSH USER INTO 'IN COMBAT' STATUS
+function startCombatWith(enemy) {
+  inCombat = true;
   $("#text-1").text(`Enemy: ${enemy.name} | Health: ${enemy.health}/${enemy.maxHealth}`);
-  $("#text-2").text(`You dealt ${damage} damage to ${enemy.name}...`);
-  updateScreenContent();
-
-  // update buttons
-  for (let i = 0; i < 5; i++) {
-    const currButton = $(`#btn-${i+1}`);
-    currButton.off("click");
-    currButton.text("...");
-  }
-
-  // after 2 seconds, enemy will attack
-  setTimeout(() => {
-    if (enemy.health <= 0) {
-      endCombat(enemy);
-    } else {
-      enemyAttack(enemy);
-    }
-  }, 2000)
+  $("#text-2").text("Combat has begun!");
+  // SPECIAL SCREEN FOR COMBAT
+  enablePlayerAttack(enemy);
 }
 
-function enemyAttack(enemy) {
-  // after player is done attacking, start enemy attack
-  $("#text-2").text(`${enemy.name} is in the process of attacking you...`);
-
-  // after 2 seconds, show result of enemy attack
-  setTimeout(() => {
-    let damage = calculateDamage(enemy, player);
-    player.health = Math.max(0, player.health - damage);
-    $("#text-1").text(`Enemy: ${enemy.name} | Health: ${enemy.health}/${enemy.maxHealth}`);
-    $("#text-2").text(`${enemy.name} dealt ${damage} damage to you with a ${enemy.currentWeapon.name}!`);
-    updatePlayerStatsDisplay();
-
-    // after 2 seconds, let player attack again
-    setTimeout(() => {
-      if (player.health <= 0) {
-        endCombat(enemy);
-      } else {
-        enablePlayerAttack(enemy);
-      }
-    }, 2000)
-  }, 2000)
-}
-
+// ENABLE THE USER TO INTERACT WITH COMBAT BUTTONS
 function enablePlayerAttack(enemy) {
   $("#text-1").text(`Enemy: ${enemy.name} | Health: ${enemy.health}/${enemy.maxHealth}`);
   $("#text-2").text(`Attack with your ${player.currentWeapon.name}!`);
@@ -323,13 +277,70 @@ function enablePlayerAttack(enemy) {
   }
 }
 
-function startCombatWith(enemy) {
-  inCombat = true;
-  $("#text-1").text(`Enemy: ${enemy.name} | Health: ${enemy.health}/${enemy.maxHealth}`);
-  $("#text-2").text("Combat has begun!");
-  enablePlayerAttack(enemy);
+// CALCULATE DAMAGE
+function calculateDamage(attacker, defender) {
+  // TOTAL WEAPON DAMAGE:  WEAPON DAMAGE + WEAPON DEXTERITY + WEAPON RANGE
+  let weaponDamage = attacker.currentWeapon.dmg + (attacker.currentWeapon.dex / 2) + (attacker.currentWeapon.rng / 3);
+  // BASE ATTACKER DAMAGE: ATTACKER ATTACK - DEFENDER DEFENSE + TOTAL WEAPON DAMAGE
+  let baseDamage = (attacker.atk - defender.def) * 2 + weaponDamage;
+  // BASE ATTACKER DAMAGE IS INCREASED IF ATTACKER IS FASTER
+  if (attacker.spd > defender.spd) {
+    baseDamage += (attacker.spd / 3)
+  }
+  // RANDOMIZATION OF RETURNED DAMAGE
+  let randomDamage = (Math.floor(Math.random() * 10) + 1) + baseDamage;
+  return Math.floor(Math.max(20, randomDamage));
 }
 
+// USER ATTACKS (IN COMBAT SCREEN)
+function playerAttack(enemy) {
+  // CALL calculateDamage
+  let damage = calculateDamage(player, enemy);
+  enemy.health = Math.max(0, enemy.health - damage);
+  // UPDATE COMBAT TEXT
+  $("#text-1").text(`Enemy: ${enemy.name} | Health: ${enemy.health}/${enemy.maxHealth}`);
+  $("#text-2").text(`You dealt ${damage} damage to ${enemy.name}...`);
+  updateScreenContent();
+  // UPDATE BUTTONS FOR COMBAT
+  for (let i = 0; i < 5; i++) {
+    const currButton = $(`#btn-${i+1}`);
+    currButton.off("click");
+    currButton.text("...");
+  }
+  // AFTER TWO SECONDS, ENEMY ATTACKS
+  setTimeout(() => {
+    if (enemy.health <= 0) {
+      endCombat(enemy);
+    } else {
+      enemyAttack(enemy);
+    }
+  }, 2000)
+}
+
+// ENEMY ATTACKS (IN COMBAT SCREEN)
+function enemyAttack(enemy) {
+  // AFTER USER ATTACKS, ENEMY ATTACKS
+  $("#text-2").text(`${enemy.name} is in the process of attacking you...`);
+  // AFTER TWO SECONDS, SHOW RESULT OF ENEMY DAMAGE
+  setTimeout(() => {
+    let damage = calculateDamage(enemy, player);
+    player.health = Math.max(0, player.health - damage);
+    // UPDATE COMBAT TEXT
+    $("#text-1").text(`Enemy: ${enemy.name} | Health: ${enemy.health}/${enemy.maxHealth}`);
+    $("#text-2").text(`${enemy.name} dealt ${damage} damage to you with a ${enemy.currentWeapon.name}!`);
+    updatePlayerStatsDisplay();
+    // AFTER TWO SECONDS, PLAYER ATTACKS
+    setTimeout(() => {
+      if (player.health <= 0) {
+        endCombat(enemy);
+      } else {
+        enablePlayerAttack(enemy);
+      }
+    }, 2000)
+  }, 2000)
+}
+
+// END COMBAT AFTER USER OR ENEMY HEALTH EQUAL ZERO
 function endCombat(enemy) {
   inCombat = false;
   if (player.health <= 0) {
@@ -346,16 +357,16 @@ function endCombat(enemy) {
   }
 }
 
-// start of game
+// GAME STARTS ON SCREEN ZERO
 let currentScreen = 0;
 updateScreenContent();
 
-// change screen
+// CHANGE SCREEN
 function changeScreen(screenNumber, classIndex) {
   if (screenNumber >= 0 && screenNumber < screens.length) {
     currentScreen = screenNumber;
 
-    // set player class
+    // SET PLAYER CLASS
     if (classIndex !== undefined) {
       setPlayerClass(classIndex);
       console.log(`Player class set to ${player.class}`)
@@ -388,14 +399,14 @@ function changeScreen(screenNumber, classIndex) {
   }
 }
 
-// add item to player inventory
+// ADD ITEM TO USER INVENTORY
 function addItemToInv(item) {
   player.inventory.push(item);
 }
 
 function updateScreenContent() {
   
-  // changing text-1, text-2, and current screen number if not in combat
+  // CHANGE #text-1, #text-2, AND #currscre-text IF USER IS NOT IN COMBAT
   if (!inCombat) {
   $("#text-1").text(typeof screens[currentScreen].text1 === 'function' 
     ? screens[currentScreen].text1() 
@@ -406,7 +417,7 @@ function updateScreenContent() {
     : screens[currentScreen].text2);
 
   $("#currscre-text").text(currentScreen);
-    // changing button texts and functions
+    // CHANGE BUTTON FUNCTIONS AND TEXT WITH EACH SCREEN
     for (let i = 0; i < 5; i++) {
       const currButton = $(`#btn-${i+1}`);
       currButton.off("click");
@@ -419,22 +430,20 @@ function updateScreenContent() {
   }
 }
 
+// UPDATE PLAYER STATISTICAL ATTRIBUTES
 function updatePlayerStatsDisplay() {
-  // update xp, xp to next level, and gold
+  // UPDATE XP, XP TO NEXT LEVEL, AND GOLD
   $("#xp-text").text(player.xp);
   $("#xptnl-text").text(player.xpToNextLevel);
   $("#gold-text").text(player.gold);
-
-  // update health
+  // UPDATE HEALTH AND MAXIMUM HEALTH
   $("#hp-text").text(player.health);
   $("#maxhp-text").text(player.maxHealth);
-
-  // update attack, speed, and defense
+  // UPDATE ATTACK, DEFENSE, AND SPEED
   $("#atk-text").text(player.atk);
   $("#def-text").text(player.def);
   $("#spd-text").text(player.spd);
-
-  // inventory and current weapon
+  // UPDATE INVENTORY AND USER CURRENT WEAPON
   $("#inv-text").text("");
   for (let i = 0; i < player.inventory.length; i++) {
     if (i !== player.inventory.length - 1) {

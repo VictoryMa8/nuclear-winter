@@ -1,18 +1,17 @@
 body {
     font-family: 'IBM Plex Mono', sans-serif;
-    background-color: #415a77;
+    background-color: #1b263b;
     color: #e7ecef;
 }
 
 #game {
-    background-color: #1b263b;
-    padding: 50px 10px;
+    padding: 30px 10px;
     padding-bottom: 100px;
     border-radius: 10px;
     display: flex;
     flex-wrap: wrap;
-    justify-content:space-around;
-    height: 900px;
+    justify-content: space-around;
+    height: 700px;
 }
 
 #player-stats, #text-boxes, #inventory {
@@ -20,6 +19,7 @@ body {
     padding: 40px 10px;
     border: 2px outset #e7ecef;
     width: 30%;
+    height: 500px;
 }
 
 #text-boxes {
