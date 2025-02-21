@@ -251,6 +251,13 @@ const screens = [
     buttonTexts: ["Onward", "Onward", "Onward", "Onward", "Onward"],
     nextScreens: [18, 18, 18, 18, 18]
   },
+  { 
+    name: "18. Welcome Back",
+    text1: "'It's nice to see you back and alive!' said one of the guards.",
+    text2: "You begin to walk toward the town square.",
+    buttonTexts: ["Continue", "Continue", "Continue", "Continue", "Continue"],
+    nextScreens: [19, 19, 19, 19, 19]
+  },
 ];
 
 // COMBAT FUNCTIONALITY
