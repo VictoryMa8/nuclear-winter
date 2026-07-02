@@ -3,53 +3,163 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nuclear Winter — The Wasteland</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=Jersey+10&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="styles.css">
-    <title>The Nuclear Wasteland</title>
 </head>
 <body>
-    <div id="game">
-        <div id="player-stats">
-            <!-- Player XP & Gold -->
-            <h3>XP: <span id="xp-text"></span></h3>
-            <h3>XP to Next Level: <span id="xptnl-text"></span></h3>
-            <h3>Gold: <span id="gold-text"></span></h3>
-            <!-- Health -->
-            <h3>Health: <span id="hp-text"></span></h3>
-            <h3>Max Health: <span id="maxhp-text"></span></h3>
-            <!-- Attack, Speed, and Defense -->
-            <h3>Atk: <span id="atk-text"></span></h3>
-            <h3>Def: <span id="def-text"></span></h3>
-            <h3>Spd: <span id="spd-text"></span></h3>
-        </div>
-        <div id="text-boxes">
-            <!-- Text Boxes -->
-            <h2 id="text-1">...</h1>
-            <h2 id="text-2">...</h2>
-            <div id="buttons">
-                <button id="btn-1">1</button>
-                <button id="btn-2">2</button>
-                <br>
-                <button id="btn-3">3</button>
-                <button id="btn-4">4</button>
-                <button id="btn-5">5</button>  
+    <div id="game-frame">
+        <!-- HUD: player vitals, gold, weapon -->
+        <div id="hud" class="hidden">
+            <div class="hud-block hud-identity">
+                <span id="hud-class">WANDERER</span>
+                <span id="hud-level">LV 0</span>
+            </div>
+            <div class="hud-block hud-bars">
+                <div class="bar-row">
+                    <span class="bar-label">HP</span>
+                    <div class="bar hp-bar"><div id="hp-fill"></div></div>
+                    <span id="hp-num">100/100</span>
+                </div>
+                <div class="bar-row">
+                    <span class="bar-label">XP</span>
+                    <div class="bar xp-bar"><div id="xp-fill"></div></div>
+                    <span id="xp-num">0/10</span>
+                </div>
+            </div>
+            <div class="hud-block hud-gold">
+                <span class="gold-coin"></span><span id="hud-gold">0</span>
+            </div>
+            <div class="hud-block hud-weapon">
+                <img id="hud-weapon-icon" alt="">
+                <span id="hud-weapon-name">Fists</span>
+            </div>
+            <div class="hud-block hud-buttons">
+                <button id="btn-inventory" title="Inventory [I]">PACK</button>
+                <button id="btn-quest" title="Quest Log [Q]">LOG</button>
+                <button id="btn-mute" title="Sound [M]">SND</button>
             </div>
         </div>
-        <div id="inventory">
-            <!-- Player Inventory & Current Weapon -->
-            <h2>Inventory: <span id="inv-text"></span></h3>
-            <h2>Current Weapon: <span id="currweap-text"></span></h3>
-            <h2>Current Screen: <span id="currscre-text"></span></h4>          
+
+        <div id="viewport">
+            <canvas id="game-canvas" width="480" height="320"></canvas>
+
+            <!-- Title screen -->
+            <div id="title-overlay" class="screen">
+                <div class="title-ash"></div>
+                <h1 id="game-title">NUCLEAR<br>WINTER</h1>
+                <p class="title-sub">the wasteland remembers</p>
+                <div class="title-buttons">
+                    <button id="btn-newgame" class="px-btn">NEW GAME</button>
+                    <button id="btn-continue" class="px-btn hidden">CONTINUE</button>
+                </div>
+                <p class="title-credit">created by Victory Ma</p>
+            </div>
+
+            <!-- Class selection -->
+            <div id="class-overlay" class="screen hidden">
+                <h2 class="screen-title">CHOOSE YOUR PAST</h2>
+                <p class="screen-sub">who were you, before tonight?</p>
+                <div id="class-cards"></div>
+            </div>
+
+            <!-- Intro slides -->
+            <div id="intro-overlay" class="screen hidden">
+                <canvas id="intro-canvas" width="480" height="200"></canvas>
+                <p id="intro-text"></p>
+                <button id="btn-intro-next" class="px-btn">CONTINUE</button>
+            </div>
+
+            <!-- Dialogue box -->
+            <div id="dialogue-box" class="hidden">
+                <div id="dialogue-name"></div>
+                <p id="dialogue-text"></p>
+                <span id="dialogue-more">&#9660;</span>
+            </div>
+
+            <!-- Combat -->
+            <div id="combat-overlay" class="hidden">
+                <canvas id="combat-canvas" width="480" height="210"></canvas>
+                <div id="combat-enemy-bar">
+                    <span id="combat-enemy-name"></span>
+                    <div class="bar enemy-bar"><div id="enemy-hp-fill"></div></div>
+                    <span id="enemy-hp-num"></span>
+                </div>
+                <div id="combat-panel">
+                    <p id="combat-log">...</p>
+                    <div id="combat-buttons">
+                        <button id="btn-attack" class="px-btn">ATTACK</button>
+                        <button id="btn-item" class="px-btn">ITEM</button>
+                        <button id="btn-flee" class="px-btn">FLEE</button>
+                    </div>
+                    <div id="combat-items" class="hidden"></div>
+                </div>
+            </div>
+
+            <!-- Inventory -->
+            <div id="inventory-overlay" class="panel-overlay hidden">
+                <div class="panel">
+                    <h2 class="panel-title">PACK</h2>
+                    <div id="inv-grid"></div>
+                    <div id="inv-weapon-row"></div>
+                    <button class="px-btn panel-close" data-close="inventory-overlay">CLOSE</button>
+                </div>
+            </div>
+
+            <!-- Quest log -->
+            <div id="quest-overlay" class="panel-overlay hidden">
+                <div class="panel">
+                    <h2 class="panel-title">LOG</h2>
+                    <p id="quest-text"></p>
+                    <button class="px-btn panel-close" data-close="quest-overlay">CLOSE</button>
+                </div>
+            </div>
+
+            <!-- Shop -->
+            <div id="shop-overlay" class="panel-overlay hidden">
+                <div class="panel shop-panel">
+                    <h2 class="panel-title">MIRA'S SALVAGE</h2>
+                    <p class="shop-gold">GOLD: <span id="shop-gold">0</span></p>
+                    <div id="shop-list"></div>
+                    <button class="px-btn panel-close" data-close="shop-overlay">LEAVE</button>
+                </div>
+            </div>
+
+            <!-- Death -->
+            <div id="death-overlay" class="screen hidden">
+                <h1 class="death-title">YOU DIED</h1>
+                <p id="death-text">The wasteland takes another.</p>
+                <button id="btn-respawn" class="px-btn">GET UP</button>
+            </div>
+
+            <!-- Ending -->
+            <div id="ending-overlay" class="screen hidden">
+                <h1 class="ending-title">THE LONG WINTER ENDS</h1>
+                <div id="ending-text"></div>
+                <button id="btn-restart" class="px-btn">NEW GAME</button>
+                <p class="title-credit">created by Victory Ma</p>
+            </div>
+
+            <!-- Area name toast -->
+            <div id="area-toast" class="hidden"></div>
         </div>
-        <div>
-            <h3>Created by Victory Ma</h3>
-            <h3>Currently Being Developed; Game Ends On Screen 17</h3>
+
+        <div id="controls-hint">
+            <span>[WASD / ARROWS] move</span>
+            <span>[E / SPACE] interact</span>
+            <span>[I] pack</span>
+            <span>[Q] log</span>
+            <span>[M] sound</span>
         </div>
-        <a id="back-btn" href="../projects.html">Back To Projects</a>
     </div>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <script src="script.js"></script>
+
+    <script src="js/audio.js"></script>
+    <script src="js/sprites.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/maps.js"></script>
+    <script src="js/combat.js"></script>
+    <script src="js/game.js"></script>
 </body>
 </html>
